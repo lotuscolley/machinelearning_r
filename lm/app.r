@@ -161,4 +161,3 @@ annotate("text", x = 17, y = 3, label = Label3)
 
 # Run the application 
 shinyApp(ui = ui, server = server)
-
