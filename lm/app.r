@@ -8,12 +8,14 @@
 #
 
 library(shiny)
+library(ggplot2)
+library(dplyr)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
+    titlePanel("Shiny Assignment"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
@@ -54,7 +56,9 @@ ui <- fluidPage(
             radioButtons("disp", "Display",
                          choices = c(Head = "head",
                                      All = "all"),
-                         selected = "head")
+                         selected = "head"),
+             actionButton("go", "Linear Regression"),
+            
         ),
 
         # Show a plot of the generated distribution
@@ -78,7 +82,11 @@ server <- function(input, output) {
                        quote = input$quote)
         return(df)
     })
-    
+      
+    modelInput <- eventReactive(input$go, {
+    lm(formula = y ~ x,
+               data = dataInput())
+  })
     # output$distPlot <- renderPlot({
     #     # generate bins based on input$bins from ui.R
     #     x    <- faithful[, 2]
@@ -90,11 +98,46 @@ server <- function(input, output) {
     # 
     
     output$distPlot <- renderPlot({
-        plot(dataInput()$x,dataInput()$y)
+        #plot(dataInput()$x,dataInput()$y)
+        ggplot() +
+    geom_point(aes(x = dataInput()$x, y = dataInput()$y),
+             colour = 'dark grey')
     })
     
-    output$lmtPlot <- renderPlot({
-        plot(dataInput()$x,dataInput()$y)
+    output$lmPlot <- renderPlot({
+      #  plot(dataInput()$x,dataInput()$y)
+      
+        model_summary <- summary(modelInput())
+        slope_value <- model_summary$coefficients[1,1] 
+        Label = paste("slope =", slope_value) 
+        
+        intercept_value <- model_summary$coefficients[2,1] 
+        Label2 = paste("b =", intercept_value)
+        
+        R_squared <- model_summary$r.squared
+        Label3 = paste("R squared =", R_squared)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+ggplot() +
+  geom_point(aes(x = dataInput()$x, y = dataInput()$y),
+             colour = 'dark grey') +
+  geom_line(aes(x = dataInput()$x, y = predict(modelInput(), newdata = dataInput())),
+            colour = 'green') +
+  ggtitle('Linear Regression') +
+  xlab('x') +
+  ylab('y') +
+   
+annotate("text", x = 17, y = 5, label = Label) +
+annotate("text", x = 17, y = 4, label = Label2) +
+annotate("text", x = 17, y = 3, label = Label3)
     })
     
     
@@ -118,3 +161,4 @@ server <- function(input, output) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
